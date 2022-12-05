@@ -9,7 +9,6 @@ import com.generation.blogpessoal.model.Postagem;
 import com.generation.blogpessoal.repository.PostagemRepository;
 import com.generation.blogpessoal.repository.TemaRepository;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,12 +53,12 @@ public class PostagemController {
     }
 
     @PostMapping
-    public ResponseEntity<Postagem> post(@Valid @RequestBody @NotNull Postagem postagem){
+    public ResponseEntity<Postagem> post(@Valid @RequestBody Postagem postagem){
         if (temaRepository.existsById(postagem.getTema().getId()))
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(postagemRepository.save(postagem));
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tema não existe!", null);
     }
 
     @PutMapping
@@ -70,7 +69,7 @@ public class PostagemController {
                 return ResponseEntity.status(HttpStatus.OK)
                         .body(postagemRepository.save(postagem));
 
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tema não existe!", null);
 
         }
 
@@ -82,8 +81,10 @@ public class PostagemController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         Optional<Postagem> postagem = postagemRepository.findById(id);
+
         if(postagem.isEmpty())
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+
         postagemRepository.deleteById(id);
     }
 
