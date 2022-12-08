@@ -11,6 +11,7 @@ import com.generation.blogpessoal.model.UsuarioLogin;
 import com.generation.blogpessoal.repository.UsuarioRepository;
 import com.generation.blogpessoal.service.UsuarioService;
 
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,7 +59,7 @@ public class UsuarioController {
 
         return usuarioService.cadastrarUsuario(usuario)
                 .map(resposta -> ResponseEntity.status(HttpStatus.CREATED).body(resposta))
-                .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 
     }
 
