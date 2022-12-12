@@ -73,28 +73,72 @@ public class UsuarioControllerTest {
             ResponseEntity<Usuario> corpoResposta = testRestTemplate
                     .exchange("/usuarios/cadastrar", HttpMethod.POST, corpoRequisicao, Usuario.class);
 
-            assertEquals(HttpStatus.NOT_FOUND, corpoResposta.getStatusCode());
+            assertEquals(HttpStatus.BAD_REQUEST, corpoResposta.getStatusCode());
         }
     @Test
-    @DisplayName("atualizar usuario")
-    public void atualizarUsuario() {
-        Optional<Usuario> usuarioCadastrado = usuarioService.cadastrarUsuario(new Usuario(0L,
-                "Maria da Silva", "maria_silva@email.com.br", "13465278", "https://i.imgur.com/T12NIp9.jpg"));
-        Usuario usuarioUpdate = new Usuario(usuarioCadastrado.get().getId(),
-                "Maria da Silva", "maria_silva@email.com.br", "13465278", "https://i.imgur.com/T12NIp9.jpg");
+    @DisplayName("Atualizar um Usuário")
+    public void deveAtualizarUmUsuario() {
 
+        /**
+         * Persiste um objeto da Classe Usuario no Banco de dados através do Objeto da Classe UsuarioService e
+         * guarda o objeto persistido no Banco de Dadoas no Objeto usuarioCadastrado, que será reutilizado abaixo.
+         *
+         * O Objeto usuarioCadastrado será do tipo Optional porquê caso o usuário não seja persistido no Banco
+         * de dados, o Optional evitará o erro NullPointerException (Objeto Nulo).
+         */
+        Optional<Usuario> usuarioCadastrado = usuarioService.cadastrarUsuario(new Usuario(0L,
+                "Juliana Andrews", "juliana_andrews@email.com.br", "juliana123", "https://i.imgur.com/yDRVeK7.jpg"));
+        /**
+         *  Cria um Objeto da Classe Usuário contendo os dados do Objeto usuarioCadastrado, que foi persistido na
+         *  linha anterior, alterando os Atributos Nome e Usuário (Atualização dos Atributos).
+         *
+         * Observe que para obter o Id de forma automática, foi utilizado o método getId() do Objeto usuarioCadastrado.
+         */
+        Usuario usuarioUpdate = new Usuario(usuarioCadastrado.get().getId(),
+                "Juliana Andrews Ramos", "juliana_ramos@email.com.br", "juliana123" , "https://i.imgur.com/yDRVeK7.jpg");
+
+        /**
+         * Insere o objeto da Classe Usuario (usuarioUpdate) dentro de um Objeto da Classe HttpEntity (Entidade HTTP)
+         */
         HttpEntity<Usuario> corpoRequisicao = new HttpEntity<Usuario>(usuarioUpdate);
 
+        /**
+         * Cria um Objeto da Classe ResponseEntity (corpoResposta), que receberá a Resposta da Requisição que será
+         * enviada pelo Objeto da Classe TestRestTemplate.
+         *
+         * Na requisição HTTP será enviada a URL do recurso (/usuarios/atualizar), o verbo (PUT), a entidade
+         * HTTP criada acima (corpoRequisicao) e a Classe de retornos da Resposta (Usuario).
+         *
+         * Observe que o Método Atualizar não está liberado de autenticação (Login do usuário), por isso utilizamos o
+         * Método withBasicAuth para autenticar o usuário em memória, criado na BasicSecurityConfig.
+         *
+         * Usuário: root
+         * Senha: root
+         */
         ResponseEntity<Usuario> corpoResposta = testRestTemplate
                 .withBasicAuth("root@root.com", "rootroot")
                 .exchange("/usuarios/atualizar", HttpMethod.PUT, corpoRequisicao, Usuario.class);
 
-
+        /**
+         *  Verifica se a requisição retornou o Status Code OK (200)
+         * Se for verdadeira, o teste passa, se não, o teste falha.
+         */
         assertEquals(HttpStatus.OK, corpoResposta.getStatusCode());
+
+        /**
+         * Verifica se o Atributo Nome do Objeto da Classe Usuario retornado no Corpo da Requisição
+         * é igual ao Atributo Nome do Objeto da Classe Usuario Retornado no Corpo da Resposta
+         * Se for verdadeiro, o teste passa, senão o teste falha.
+         */
         assertEquals(corpoRequisicao.getBody().getNome(), corpoResposta.getBody().getNome());
+
+        /**
+         * Verifica se o Atributo Usuario do Objeto da Classe Usuario retornado no Corpo da Requisição
+         * é igual ao Atributo Usuario do Objeto da Classe Usuario Retornado no Corpo da Resposta
+         * Se for verdadeiro, o teste passa, senão o teste falha.
+         */
         assertEquals(corpoRequisicao.getBody().getUsuario(), corpoResposta.getBody().getUsuario());
     }
-
     @Test
     @DisplayName("listar todos os Usuarios")
     public void deveMostrarTodososUsuarios(){
@@ -115,6 +159,7 @@ public class UsuarioControllerTest {
     @Test
     @DisplayName("logar o usuario")
     public void logarUsuario() {
+
         HttpEntity<UsuarioLogin> corpoRequisicao = new HttpEntity<>(
                 new UsuarioLogin("root@root.com", "rootroot"));
         ResponseEntity<Usuario> response = testRestTemplate
@@ -125,19 +170,18 @@ public class UsuarioControllerTest {
 
     }
 
-
     @Test
     @DisplayName("listar todos os Usuarios por ID")
     public void listarUsuariosId(){
-
+Optional<Usuario>novoUsuario =
         usuarioService.cadastrarUsuario(new Usuario(0L,
                 "Maria da Silva", "maria_silva@email.com.br", "13465278", "https://i.imgur.com/T12NIp9.jpg"));
 
         usuarioService.cadastrarUsuario(new Usuario(0L,
                 "Adriana Nogueira", "adriana@email.com.br", "13465278", "https://i.imgur.com/T12NIp9.jpg"));
-        ResponseEntity<String> corpoResposta = testRestTemplate
+        ResponseEntity<Usuario> corpoResposta = testRestTemplate
                 .withBasicAuth("root@root.com", "rootroot")
-                .exchange("/usuarios/1", HttpMethod.GET, null, String.class);
+                .exchange("/usuarios/"+novoUsuario.get().getId(), HttpMethod.GET, null, Usuario.class);
         assertEquals(HttpStatus.OK, corpoResposta.getStatusCode());
 
     }
